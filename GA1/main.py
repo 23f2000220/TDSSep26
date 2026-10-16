@@ -11,10 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-origins=["https://exam.sanand.workers.dev/tds-2026-09-ga1#hq-config-precedence-server"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = origins,
+    allow_origins = "*",
     allow_credentials=True,
     allow_methods =["*"],
     allow_headers=["*"]
