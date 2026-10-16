@@ -17,7 +17,7 @@ app.add_middleware(
     allow_origins = origins,
     allow_credentials=True,
     allow_methods =["*"],
-    all_headers=["*"]
+    allow_headers=["*"]
 )
 DEFAULTS : dict[str,Any] ={
     "port": 8000,
