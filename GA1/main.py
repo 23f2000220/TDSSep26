@@ -124,3 +124,9 @@ def get_config(
 
 
 
+@app.get("/debug/query")
+def debug_query(set: list[str] = Query(default=[])):
+    return {
+        "raw_set": set,
+        "parsed": parse_set_overrides(set),
+    }
