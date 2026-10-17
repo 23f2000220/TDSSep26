@@ -6,18 +6,19 @@ import yaml
 from dotenv import dotenv_values
 
 import hashlib
+import contextlib
 
-
+from server import mcp, mcp_app
 from fastapi import FastAPI,Query,Request
 from fastapi.middleware.cors import CORSMiddleware
-from mcp.server.mcpserver import MCPServer, Context
 
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with mcp.session_manager.run():
+        yield
 
-app = FastAPI()
-mcp= MCPServer("challenge-server")
+app = FastAPI(lifespan=lifespan)
 
-id = "23f2000220@ds.study.iitm.ac.in"
-normalizedEmail = id.strip().lower()
 
 app.add_middleware(
     CORSMiddleware,
@@ -138,15 +139,5 @@ def debug_query(set: list[str] = Query(default=[])):
         "parsed": parse_set_overrides(set),
     }
 
-@mcp.tool()
-async def solve_challenge(ctx: Context)->str:
-    res = (ctx.headers or {}).get("x-exam-challenge")
-    if res is None:
-        return "missing"
-    output =(f"{res}:{normalizedEmail}").encode("utf-8")
-    hashed = hashlib.sha256(output)
-    ans = hashed.hexdigest()[:16]
-    return ans
-
-if __name__=="__main__":
-    mcp.run(transport ="streamable-http",stateless_http=True,json_response =True,host ='0.0.0.0', port =8000)
+   
+app.mount("/", mcp_app)
