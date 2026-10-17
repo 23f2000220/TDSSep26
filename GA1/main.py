@@ -77,19 +77,23 @@ def load_os_env_config() ->dict[str,Any]:
     }
 
 
-def parse_set_overrider(set_params: list[str]) -> dict[str,Any]:
-    overrides : dict[str,Any] ={}
-    for item in set_params:
-        if not item.startswith("set="):
-            continue
-        raw = item.removeprefix("set=")
-        
-        if "=" not in raw:
-            continue
+def parse_set_overrides(set_params: list[str]) -> dict[str, Any]:
+    overrides: dict[str, Any] = {}
 
-        key,value = raw.split("=",1)
+    for item in set_params:
+        raw = item
+
+        # Support both ?set=log_level=error and ?set=set=log_level=error
+        if raw.startswith("set="):
+            raw = raw.removeprefix("set=")
+
+        key, separator, value = raw.partition("=")
+
+        if not separator:
+            continue
+        
         key = normalize_key(key.strip())
-        overrides[key]= coerce(key,value.strip())
+        overrides[key] = coerce(key, value.strip())
 
     return overrides
 
@@ -106,14 +110,14 @@ def get_config(
         load_yaml_config(env),
         load_dotenv_config(),
         load_os_env_config(),
-        parse_set_overrider(set)
+        parse_set_overrides(set)
     ]
 
     for layer in layers:
         for key,value in layer.items():
             merged[key] = coerce(key,value)
 
-    merged['api_key'] = "****"
+    merged["api_key"] = "****"
 
     return merged
 
